@@ -11,25 +11,42 @@ import javax.persistence.*
 @RestController
 class CouponController(
     val couponRepository: CouponRepository,
+    val couponPlanRepository: CouponPlanRepository,
+    val entityManager: EntityManager,
 ) {
+
+    @GetMapping("/coupons")
+    fun coupons(): String {
+        val coupon = couponRepository.findById(1L).get()
+        return coupon.reservation!!.name
+    }
+
+
+    @PostMapping("/coupon-plan")
+    fun saveCouponPlan() {
+        couponPlanRepository.save(CouponPlan(name = "test plan"))
+//        entityManager.flush()
+        entityManager.clear()
+    }
 
     @PostMapping("/coupons")
     fun saveCoupon() {
         couponRepository.save(
-            Coupon()
+            Coupon(
+                name = "coupon name",
+                couponPlan = CouponPlan(id = 1L, name = "test plan"),
+                reservation = Reservation(id = 1L, name = "tester"),
+            )
         )
-    }
-
-    @GetMapping("/coupons")
-    fun coupons(): Optional<Coupon> {
-        return couponRepository.findById(1L)
+//        entityManager.flush()
+        entityManager.clear()
     }
 
     @PostMapping("/reservations")
     @Transactional
     fun saveReservation() {
         val coupon = couponRepository.findById(1L).get()
-        coupon.reservation = Reservation(10L, name = "tester")
+//        coupon.reservation = Reservation(10L, name = "tester")
     }
 }
 
@@ -39,8 +56,23 @@ class Coupon(
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id : Long = 0L,
 
-    @OneToOne(cascade = [CascadeType.ALL])
-    var reservation: Reservation? = null
+    val name: String,
+
+    @OneToOne(cascade = [CascadeType.ALL], fetch = FetchType.LAZY)
+    var reservation: Reservation? = null,
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "coupon_plan_id")
+    var couponPlan: CouponPlan
+)
+
+@Entity
+class CouponPlan(
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    val id : Long = 0L,
+
+    val name: String,
 )
 
 @Entity
@@ -52,4 +84,4 @@ class Reservation(
 )
 
 interface CouponRepository: JpaRepository<Coupon, Long>
-interface ReservationRepository: JpaRepository<Reservation, Long>
+interface CouponPlanRepository: JpaRepository<CouponPlan, Long>

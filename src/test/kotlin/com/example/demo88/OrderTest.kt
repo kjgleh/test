@@ -1,5 +1,6 @@
 package com.example.demo88
 
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
@@ -15,17 +16,24 @@ class OrderTest {
     private lateinit var couponRepository: CouponRepository
 
     @Autowired
-    private lateinit var reservationRepository: ReservationRepository
+    private lateinit var couponPlanRepository: CouponPlanRepository
 
     @Test
     fun test() {
-        val reservation = reservationRepository.save(Reservation())
-//        val reservation = null
-        val coupon = couponRepository.save(Coupon(reservation = reservation))
+        couponPlanRepository.save(CouponPlan(name = "test plan"))
+        val coupon = couponRepository.save(
+            Coupon(
+                name = "coupon name",
+                couponPlan = CouponPlan(id = 1L, name = "test plan"),
+                reservation = Reservation(id = 1L, name = "tester"),
+            )
+        )
 
         entityManager.flush()
         entityManager.clear()
 
-        couponRepository.findById(1L)
+        val actual = couponRepository.findById(1L).get()
+
+        assertThat(actual.couponPlan.name).isEqualTo("test plan")
     }
 }
