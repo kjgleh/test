@@ -24,7 +24,7 @@ class CouponController(
 
     @PostMapping("/coupon-plan")
     fun saveCouponPlan() {
-        couponPlanRepository.save(CouponPlan(name = "test plan"))
+        couponPlanRepository.save(CouponPlan(name = "test plan", name2 = "1"))
 //        entityManager.flush()
         entityManager.clear()
     }
@@ -34,7 +34,7 @@ class CouponController(
         couponRepository.save(
             Coupon(
                 name = "coupon name",
-                couponPlan = CouponPlan(id = 1L, name = "test plan"),
+                couponPlan = CouponPlan(id = 1L, name = "test plan", name2 = "1"),
                 reservation = Reservation(id = 1L, name = "tester"),
             )
         )
@@ -72,7 +72,11 @@ class CouponPlan(
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id : Long = 0L,
 
+    @Column(name = "name")
     val name: String,
+
+    @Column(name = "name", insertable = false, updatable = false)
+    val name2: String = "",
 )
 
 @Entity
